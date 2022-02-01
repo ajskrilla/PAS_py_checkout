@@ -21,13 +21,16 @@ sec_test(**c.ten_info)
 def get_pw(tenant, header, **ignored):
     log.info("Checking out PW in tenant: {tenant}".format(**f.loaded['tenants'][0]))
     # Account info
-    log.info("Getting ID for account {Name}....".format(**args))
+    log.info("Getting ID for account {0}....".format(args.Name))
     acc_q = query_request("SELECT VaultAccount.ID, VaultAccount.UserDisplayName FROM VaultAccount WHERE \
-        VaultAccount.UserDisplayName = '{Name}'".format(**args), tenant, header).parsed_json["Result"]['Results']
-    acc = acc_q["ID"]
+        VaultAccount.UserDisplayName = '{0}'".format(args.Name), tenant, header).parsed_json["Result"]
+    if acc_q['Count'] != 1:
+        log.error("Either the account does not exist or there are too many accounts to pull. Check the account in tenant")
+    acc = acc_q['Results'][0]['Row']["ID"]
     log.info("Getting PW now....")
-    pw = other_requests("/ServerManage/CheckoutPassword", ID=acc, tenant, header).parsed_json["Result"]
+    pw = other_requests("/ServerManage/CheckoutPassword", tenant, header, ID=acc).parsed_json["Result"]
     log.info("PW is {Password}".format(**pw))
-)
+    log.info("COID is: {COID}".format(**pw))
+
 # Execute funtion
 get_pw(**c.ten_info)
