@@ -15,9 +15,11 @@ if args.Password:
     c = Cache(args.Password, **f.loaded['tenants'][0])
 else:
     c = Cache(**f.loaded['tenants'][0])
-# Security test (prob shove in module as well)
+# Security test (prob shove in module as well. like throw it in the
+#  cache class so that I do not need to add these stupid lines and
+#  make it cleaner)
 sec_test(**c.ten_info)
-# Get PW
+# Get PW and check it in
 def get_pw(tenant, header, **ignored):
     log.info("Checking out PW in tenant: {tenant}".format(**f.loaded['tenants'][0]))
     # Account info
@@ -30,7 +32,11 @@ def get_pw(tenant, header, **ignored):
     log.info("Getting PW now....")
     pw = other_requests("/ServerManage/CheckoutPassword", tenant, header, ID=acc).parsed_json["Result"]
     log.info("PW is {Password}".format(**pw))
+    if pw['COID'] == None:
+        log.warning("Could be a major issue with Vaulted PW. Force Checkin now to not have issues. Stopping here.")
+        return None
     log.info("COID is: {COID}".format(**pw))
-
+    log.info("Now going to check in the PW....")
+    other_requests('/ServerManage/CheckinPassword', tenant, header, ID=pw['COID'])
 # Execute funtion
 get_pw(**c.ten_info)
