@@ -33,10 +33,20 @@ def get_pw(tenant, header, **ignored):
     pw = other_requests("/ServerManage/CheckoutPassword", tenant, header, ID=acc).parsed_json["Result"]
     log.info("PW is {Password}".format(**pw))
     if pw['COID'] == None:
-        log.warning("Could be a major issue with Vaulted PW. Force Checkin now to not have issues. Stopping here.")
-        return None
-    log.info("COID is: {COID}".format(**pw))
-    log.info("Now going to check in the PW....")
-    other_requests('/ServerManage/CheckinPassword', tenant, header, ID=pw['COID'])
+        log.warning("Could be a major issue with Vaulted PW. Force Checkin now to not have issues. Need to Remediate.")
+        log.warning("Rotating PW no matter what. This will ignore checkouts.")
+        other_requests('/ServerManage/RotatePassword', tenant, header, ID=pw['COID'], ignorecheckouts=True)
+        log.info("Now getting new PW.")
+        pw = other_requests("/ServerManage/CheckoutPassword", tenant, header, ID=acc).parsed_json["Result"]
+        log.info("COID is: {COID}".format(**pw))
+        log.info("Now going to check in the PW....")
+        other_requests('/ServerManage/CheckinPassword', tenant, header, ID=pw['COID'])
+        log.info("Checked in PW.")
+    # dont know why this is needed but the logic stopped on the iniial if cond
+    else:
+        log.info("COID is: {COID}".format(**pw))
+        log.info("Now going to check in the PW....")
+        other_requests('/ServerManage/CheckinPassword', tenant, header, ID=pw['COID'])
+        log.info("Checked in PW.")
 # Execute funtion
 get_pw(**c.ten_info)
