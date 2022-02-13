@@ -28,6 +28,8 @@ def get_pw(tenant, header, **ignored):
         VaultAccount.UserDisplayName = '{0}'".format(args.Name), tenant, header).parsed_json["Result"]
     if acc_q['Count'] != 1:
         log.error("Either the account does not exist or there are too many accounts to pull. Check the account in tenant")
+        # Stop cuz we dont wanna continue
+        return None
     acc = acc_q['Results'][0]['Row']["ID"]
     log.info("Getting PW now....")
     pw = other_requests("/ServerManage/CheckoutPassword", tenant, header, ID=acc).parsed_json["Result"]
@@ -35,7 +37,7 @@ def get_pw(tenant, header, **ignored):
     if pw['COID'] == None:
         log.warning("Could be a major issue with Vaulted PW. Force Checkin now to not have issues. Need to Remediate.")
         log.warning("Rotating PW no matter what. This will ignore checkouts.")
-        other_requests('/ServerManage/RotatePassword', tenant, header, ID=pw['COID'], ignorecheckouts=True)
+        other_requests('/ServerManage/RotatePassword', tenant, header, ID=acc, ignorecheckouts=True)
         log.info("Now getting new PW.")
         pw = other_requests("/ServerManage/CheckoutPassword", tenant, header, ID=acc).parsed_json["Result"]
         log.info("COID is: {COID}".format(**pw))

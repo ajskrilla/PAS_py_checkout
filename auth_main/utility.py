@@ -25,14 +25,14 @@ try:
 except:
     logging.basicConfig(level = logging.DEBUG, datefmt='%Y-%m-%d %H:%M:%S', \
     format='%(asctime)s %(name)s %(levelname)-8s %(message)s')
+# Fix this at some point
 else:
     logging.basicConfig(level = level, datefmt='%Y-%m-%d %H:%M:%S', \
         format='%(asctime)s %(name)s %(levelname)-8s %(message)s')
 
-# For the OAUTH process
-
 class auth:
     def __init__(self, *args, **kwargs):
+        # For DMC
         if kwargs['auth'].upper() == 'DMC':
             logging.info('Setting auth headers for DMC......')
             self._headers = {}
@@ -46,6 +46,7 @@ class auth:
             except KeyError:
                 logging.error('Issue with getting DMC scope')
                 raise Exception
+        # For the OATH process
         elif kwargs['auth'].upper() == 'OAUTH':
             # If statement to handle the non PW assumption
             logging.info("Going to authenticate Oauth account: {client_id}".format(**kwargs['body'])) 
@@ -70,6 +71,7 @@ class auth:
             self._headers["Authorization"] = "Bearer {access_token}".format(**req)
             self._headers["X-CENTRIFY-NATIVE-CLIENT"] = 'true'
         else:
+            # Raise sysexit. should NEVER continue at this point
             logging.error("Not valid auth type. Please fix")
     @property
     def headers(self):
@@ -92,6 +94,7 @@ class Cache:
     @property
     def ten_info(self):
         return self._cache
+    # In case u wanna dump the cache and rebuild
     @property
     def dump(self):
         logging.info("Dumping the cache.")
